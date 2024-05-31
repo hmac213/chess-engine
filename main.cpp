@@ -18,7 +18,7 @@ Board::Board() {
     for (int i = 2; i < 6; ++i) {
         for (int j = 0; j < 8; ++j) {
             board[i][j].color = -1;
-            board[i][j].name = "000";
+            board[i][j].name = "e";
         }
     }
 
@@ -26,14 +26,14 @@ Board::Board() {
 
     for (int i = 0; i < 8; ++i) {
         board[1][i].color = 0;
-        board[1][i].name = "001";
+        board[1][i].name = "p";
     }
 
     // initialize black pawns
 
     for (int i = 0; i < 8; ++i) {
         board[6][i].color = 1;
-        board[6][i].name = "001";
+        board[6][i].name = "p";
     }
 
     // initialize white pieces
@@ -42,14 +42,14 @@ Board::Board() {
         board[0][i].color = 0;
     }
     
-    board[0][0].name = "100";
-    board[0][7].name = "100";
-    board[0][1].name = "011";
-    board[0][6].name = "011";
-    board[0][2].name = "010";
-    board[0][5].name = "010";
-    board[0][3].name = "101";
-    board[0][4].name = "110";
+    board[0][0].name = "r";
+    board[0][7].name = "r";
+    board[0][1].name = "b";
+    board[0][6].name = "b";
+    board[0][2].name = "n";
+    board[0][5].name = "n";
+    board[0][3].name = "q";
+    board[0][4].name = "k";
 
     // initialize black pieces
 
@@ -57,50 +57,40 @@ Board::Board() {
         board[7][i].color = 1;
     }
 
-    board[7][0].name = "100";
-    board[7][7].name = "100";
-    board[7][1].name = "011";
-    board[7][6].name = "011";
-    board[7][2].name = "010";
-    board[7][5].name = "010";
-    board[7][3].name = "101";
-    board[7][4].name = "110";
+    board[7][0].name = "r";
+    board[7][7].name = "r";
+    board[7][1].name = "b";
+    board[7][6].name = "b";
+    board[7][2].name = "n";
+    board[7][5].name = "n";
+    board[7][3].name = "q";
+    board[7][4].name = "k";
 }
 
-std::vector<std::string>* Board::boardMoves(std::vector<std::string> &activePieces, int color) {
+std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePieces, int color) {
 
     /*
     
     Moves are going to be implemented with strings:
 
-    First four characters, PIECE COLOR (1) + PIECE NAME (3)
+    First two characters, PIECE COLOR (1) + PIECE NAME (1)
     Next two characters, RANK FROM (1) + FILE FROM (1)
     Next two characters, RANK TO (1) + FILE TO (1)
     Last Character, Is it a take -> 0 no, 1 yes ----> STILL NEED TO SEE IF NEEDED
 
-    OVERALL: 9 Characters
+    OVERALL: 7 Characters
 
-    need to look into whether I should adopt a more efficient naming system (ie. pieces are 1 char)
-        p = pawn
-        n = knight
-        b = bishop
-        r = rook
-        q = queen
-        k = king
-    Would only eliminate two characters though.
+    example would be: 0p10211 -> white pawn goes from (1,0) to (2,1), while taking
 
     */
 
-    std::vector<std::string>* validMoves;
     for (const auto& rank : board) {
         for (const auto& piece : rank) {
             int curRank = piece.rank;
             int curFile = piece.file;
-            char rankChar = '0' + curRank;
-            char fileChar = '0' + curFile;
 
-            if (piece.name == "000") {
-                return nullptr;
+            if (piece.name == "e") {
+                return ;
             }
 
             /*
@@ -112,49 +102,125 @@ std::vector<std::string>* Board::boardMoves(std::vector<std::string> &activePiec
                 - En Passant: Skip-take on a pawn that has jumped two from default square
             */
 
-            if (piece.name == "001") {
-                if (piece.hasMoved == true) {
-                    if (piece.color == 0) {
-                        int nextRank = piece.rank + 1;
-                        if (nextRank < 7) {
-                            if (board[nextRank][curFile].name == "000") {
-                                
-                            }
+            if (piece.name == "p") {
+                // double jumps for unmoved pawns
+
+                if (piece.hasMoved == false) {
+                    if (color == 0) {
+                        if (board[curRank + 1][curFile].name == "e" && board[curRank + 2][curFile].name == "e") {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 2) + std::to_string(curFile) + '0');
                         }
                     } else {
-                        int nextRank = piece.rank - 1;
-                        if (nextRank > 0) {
-                            if (board[nextRank][curFile].name == "000") {
+                        if (board[curRank - 1][curFile].name == "e" && board[curRank - 2][curFile].name == "e") {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 2) + std::to_string(curFile) + '0');
+                        }
+                    }
+                }
 
-                            }
+                // single jumps for any pawn
+
+                if (color == 0) {
+                    if (curRank < 7) {
+                        if (board[curRank + 1][curFile].name == "e") {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile) + '0');
                         }
                     }
                 } else {
+                    if (curRank > 0) {
+                        if (board[curRank - 1][curFile].name == "e") {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile) + '0');
+                        }
+                    }
+                }
 
+                // takes for any pawn
+
+                if (color == 0) {
+                    if (curFile > 0) {
+                        if (board[curRank + 1][curFile - 1].color == 1) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile - 1) + '1');
+                        }
+                    }
+
+                    if (curFile < 7) {
+                        if (board[curRank + 1][curFile + 1].color == 1) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile + 1) + '0');
+                        }
+                    }
+                } else {
+                    if (curFile > 0) {
+                        if (board[curRank - 1][curFile - 1].color == 0) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile - 1) + '1');
+                        }
+                    }
+
+                    if (curFile < 7) {
+                        if (board[curRank - 1][curFile + 1].color == 0) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile + 1) + '0');
+                        }
+                    }
+                }
+
+                // en passant for valid pawns
+
+                if (color == 0) {
+                    if (curFile > 0) {
+                        if (curRank == 4 && board[curRank][curFile - 1].name == "p" && board[curRank][curFile - 1].color == 1 && board[curRank][curFile - 1].pawnDoubleJump == true) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile - 1) + '1');
+                        }
+                    }
+
+                    if (curFile < 7) {
+                        if (curRank == 4 && board[curRank][curFile + 1].name == "p" && board[curRank][curFile + 1].color == 1 && board[curRank][curFile + 1].pawnDoubleJump == true) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile + 1) + '1');
+                        }
+                    }
+                } else {
+                    if (curFile > 0) {
+                        if (curRank == 3 && board[curRank][curFile - 1].name == "p" && board[curRank][curFile - 1].color == 1 && board[curRank][curFile - 1].pawnDoubleJump == true) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile - 1) + '1');
+                        }
+                    }
+
+                    if (curFile < 7) {
+                        if (curRank == 3 && board[curRank][curFile + 1].name == "p" && board[curRank][curFile + 1].color == 1 && board[curRank][curFile + 1].pawnDoubleJump == true) {
+                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile + 1) + '1');
+                        }
+                    }
+                }
+
+                // promotion for valid pawns ---> DONT WRITE YET, SHOULD IMPLEMENT IN MOVE() FUNCTION INSTEAD
+
+                if (color == 0) {
+
+                } else {
+                    
                 }
             }
 
-            if (piece.name == "010") {
+            if (piece.name == "n") {
 
             }
 
-            if (piece.name == "011") {
+            if (piece.name == "b") {
 
             }
 
-            if (piece.name == "100") {
+            if (piece.name == "r") {
 
             }
 
-            if (piece.name == "101") {
+            if (piece.name == "q") {
 
             }
 
-            if (piece.name == "110") {
+            if (piece.name == "k") {
 
             }
         }
     }
+
+    return validMoves;
 }
 
 // void Board::updateBoard() {

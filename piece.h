@@ -10,19 +10,20 @@ struct Piece {
     int file; // file of piece
     int rank; // rank of piece
 
-    bool hasMoved; // only important for king + rooks (castling) / pawns (double movement / en passant)
+    bool hasMoved; // only important for king + rooks (castling) / pawns (double movement)
+    bool pawnDoubleJump; // only important for en passant ---> MAKE SURE TO SET FALSE ONE MOVE AFTER THE DOUBLE JUMP HAS BEEN PERFORMED (en passant must happen immediately)
 };
 
 /*
 Piece names:
 
-000 -> null piece
-001 -> pawn
-010 -> knight
-011 -> bishop
-100 -> rook
-101 -> queen
-110 -> king
+e -> null piece
+p -> pawn
+n -> knight
+b -> bishop
+r -> rook
+q -> queen
+k -> king
 */
 
 #endif // UNIQUE_PIECE

@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include "board.h"
+#include <algorithm>
 
 #define SCREEN_WIDTH 1100
 #define SCREEN_HEIGHT 800
@@ -65,6 +66,10 @@ Board::Board() {
     board[7][5].name = "n";
     board[7][3].name = "q";
     board[7][4].name = "k";
+
+    // always starts with white's turn
+
+    playerTurn = 0;
 }
 
 std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePieces, int color) {
@@ -222,6 +227,33 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
 
     return validMoves;
 }
+
+void Board::move(Piece piece, int toRank, int toFile) {
+    std::string moveString = std::to_string(piece.color) + piece.name + std::to_string(piece.rank) + std::to_string(piece.file) + std::to_string(toRank) + std::to_string(toFile);
+    if (playerTurn == piece.color) {
+        if (std::find(validMoves.begin(), validMoves.end(), moveString + '0') != validMoves.end() || std::find(validMoves.begin(), validMoves.end(), moveString + '1') != validMoves.end()) {
+            board[piece.rank][piece.file].color = -1;
+            board[piece.rank][piece.file].name = "e";
+            board[piece.rank][piece.file].hasMoved = false;
+            board[piece.rank][piece.file].pawnDoubleJump = false;
+
+            board[toRank][toFile] = piece;
+
+            if (playerTurn == 0) {
+                playerTurn = 1;
+            } else {
+                playerTurn = 0;
+            }
+
+            return;
+        }
+    }
+
+    // IMPLEMENT LOGIC FOR WHAT TO DO IF A MOVE IS NOT VALID. Likely will only need this for human input on the graphical board.
+
+}
+
+// after making a move, the board is updated with the new board values.
 
 // void Board::updateBoard() {
 

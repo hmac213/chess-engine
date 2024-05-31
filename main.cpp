@@ -45,10 +45,10 @@ Board::Board() {
     
     board[0][0].name = "r";
     board[0][7].name = "r";
-    board[0][1].name = "b";
-    board[0][6].name = "b";
-    board[0][2].name = "n";
-    board[0][5].name = "n";
+    board[0][1].name = "n";
+    board[0][6].name = "n";
+    board[0][2].name = "b";
+    board[0][5].name = "b";
     board[0][3].name = "q";
     board[0][4].name = "k";
 
@@ -60,10 +60,10 @@ Board::Board() {
 
     board[7][0].name = "r";
     board[7][7].name = "r";
-    board[7][1].name = "b";
-    board[7][6].name = "b";
-    board[7][2].name = "n";
-    board[7][5].name = "n";
+    board[7][1].name = "n";
+    board[7][6].name = "n";
+    board[7][2].name = "b";
+    board[7][5].name = "b";
     board[7][3].name = "q";
     board[7][4].name = "k";
 

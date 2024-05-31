@@ -228,6 +228,8 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
     return validMoves;
 }
 
+// still need to handle pawn promotion
+
 void Board::move(Piece piece, int toRank, int toFile) {
     std::string moveString = std::to_string(piece.color) + piece.name + std::to_string(piece.rank) + std::to_string(piece.file) + std::to_string(toRank) + std::to_string(toFile);
     if (playerTurn == piece.color) {

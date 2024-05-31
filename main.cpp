@@ -1,6 +1,9 @@
 #include <SDL2/SDL.h>
-#include "board.h"
 #include <algorithm>
+#include <utility>
+
+#include "board.h"
+#include "move.h"
 
 #define SCREEN_WIDTH 1100
 #define SCREEN_HEIGHT 800
@@ -19,7 +22,7 @@ Board::Board() {
     for (int i = 2; i < 6; ++i) {
         for (int j = 0; j < 8; ++j) {
             board[i][j].color = -1;
-            board[i][j].name = "e";
+            board[i][j].name = 'e';
         }
     }
 
@@ -27,14 +30,14 @@ Board::Board() {
 
     for (int i = 0; i < 8; ++i) {
         board[1][i].color = 0;
-        board[1][i].name = "p";
+        board[1][i].name = 'p';
     }
 
     // initialize black pawns
 
     for (int i = 0; i < 8; ++i) {
         board[6][i].color = 1;
-        board[6][i].name = "p";
+        board[6][i].name = 'p';
     }
 
     // initialize white pieces
@@ -43,14 +46,14 @@ Board::Board() {
         board[0][i].color = 0;
     }
     
-    board[0][0].name = "r";
-    board[0][7].name = "r";
-    board[0][1].name = "n";
-    board[0][6].name = "n";
-    board[0][2].name = "b";
-    board[0][5].name = "b";
-    board[0][3].name = "q";
-    board[0][4].name = "k";
+    board[0][0].name = 'r';
+    board[0][7].name = 'r';
+    board[0][1].name = 'n';
+    board[0][6].name = 'n';
+    board[0][2].name = 'b';
+    board[0][5].name = 'b';
+    board[0][3].name = 'q';
+    board[0][4].name = 'k';
 
     // initialize black pieces
 
@@ -58,21 +61,21 @@ Board::Board() {
         board[7][i].color = 1;
     }
 
-    board[7][0].name = "r";
-    board[7][7].name = "r";
-    board[7][1].name = "n";
-    board[7][6].name = "n";
-    board[7][2].name = "b";
-    board[7][5].name = "b";
-    board[7][3].name = "q";
-    board[7][4].name = "k";
+    board[7][0].name = 'r';
+    board[7][7].name = 'r';
+    board[7][1].name = 'n';
+    board[7][6].name = 'n';
+    board[7][2].name = 'b';
+    board[7][5].name = 'b';
+    board[7][3].name = 'q';
+    board[7][4].name = 'k';
 
     // always starts with white's turn
 
     playerTurn = 0;
 }
 
-std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePieces, int color) {
+std::vector<Move> Board::boardMoves(std::vector<std::string>* activePieces, int color) {
 
     /*
     
@@ -94,7 +97,7 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
             int curRank = piece.rank;
             int curFile = piece.file;
 
-            if (piece.name == "e") {
+            if (piece.name == 'e') {
                 return ;
             }
 
@@ -107,17 +110,17 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
                 - En Passant: Skip-take on a pawn that has jumped two from default square
             */
 
-            if (piece.name == "p") {
+            if (piece.name == 'p') {
                 // double jumps for unmoved pawns
 
                 if (piece.hasMoved == false) {
                     if (color == 0) {
-                        if (board[curRank + 1][curFile].name == "e" && board[curRank + 2][curFile].name == "e") {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 2) + std::to_string(curFile) + '0');
+                        if (board[curRank + 1][curFile].name == 'e' && board[curRank + 2][curFile].name == 'e') {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank + 2, curFile, 0));
                         }
                     } else {
-                        if (board[curRank - 1][curFile].name == "e" && board[curRank - 2][curFile].name == "e") {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 2) + std::to_string(curFile) + '0');
+                        if (board[curRank - 1][curFile].name == 'e' && board[curRank - 2][curFile].name == 'e') {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank - 2, curFile, 0));
                         }
                     }
                 }
@@ -126,14 +129,14 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
 
                 if (color == 0) {
                     if (curRank < 7) {
-                        if (board[curRank + 1][curFile].name == "e") {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile) + '0');
+                        if (board[curRank + 1][curFile].name == 'e') {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank + 1, curFile, 0));
                         }
                     }
                 } else {
                     if (curRank > 0) {
-                        if (board[curRank - 1][curFile].name == "e") {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile) + '0');
+                        if (board[curRank - 1][curFile].name == 'e') {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank - 1, curFile, 0));
                         }
                     }
                 }
@@ -143,25 +146,25 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
                 if (color == 0) {
                     if (curFile > 0) {
                         if (board[curRank + 1][curFile - 1].color == 1) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile - 1) + '1');
+                            validMoves.push_back(Move(board[curRank][curFile], curRank + 1, curFile - 1, 1));
                         }
                     }
 
                     if (curFile < 7) {
                         if (board[curRank + 1][curFile + 1].color == 1) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile + 1) + '0');
+                            validMoves.push_back(Move(board[curRank][curFile], curRank + 1, curFile + 1, 1));
                         }
                     }
                 } else {
                     if (curFile > 0) {
                         if (board[curRank - 1][curFile - 1].color == 0) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile - 1) + '1');
+                            validMoves.push_back(Move(board[curRank][curFile], curRank - 1, curFile - 1, 1));
                         }
                     }
 
                     if (curFile < 7) {
                         if (board[curRank - 1][curFile + 1].color == 0) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile + 1) + '0');
+                            validMoves.push_back(Move(board[curRank][curFile], curRank - 1, curFile + 1, 1));
                         }
                     }
                 }
@@ -170,26 +173,26 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
 
                 if (color == 0) {
                     if (curFile > 0) {
-                        if (curRank == 4 && board[curRank][curFile - 1].name == "p" && board[curRank][curFile - 1].color == 1 && board[curRank][curFile - 1].pawnDoubleJump == true) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile - 1) + '1');
+                        if (curRank == 4 && board[curRank][curFile - 1].name == 'p' && board[curRank][curFile - 1].color == 1 && board[curRank][curFile - 1].pawnDoubleJump == true) {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank + 1, curFile - 1, 1));
                         }
                     }
 
                     if (curFile < 7) {
-                        if (curRank == 4 && board[curRank][curFile + 1].name == "p" && board[curRank][curFile + 1].color == 1 && board[curRank][curFile + 1].pawnDoubleJump == true) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank + 1) + std::to_string(curFile + 1) + '1');
+                        if (curRank == 4 && board[curRank][curFile + 1].name == 'p' && board[curRank][curFile + 1].color == 1 && board[curRank][curFile + 1].pawnDoubleJump == true) {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank + 1, curFile + 1, 1));
                         }
                     }
                 } else {
                     if (curFile > 0) {
-                        if (curRank == 3 && board[curRank][curFile - 1].name == "p" && board[curRank][curFile - 1].color == 1 && board[curRank][curFile - 1].pawnDoubleJump == true) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile - 1) + '1');
+                        if (curRank == 3 && board[curRank][curFile - 1].name == 'p' && board[curRank][curFile - 1].color == 1 && board[curRank][curFile - 1].pawnDoubleJump == true) {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank - 1, curFile - 1, 1));
                         }
                     }
 
                     if (curFile < 7) {
-                        if (curRank == 3 && board[curRank][curFile + 1].name == "p" && board[curRank][curFile + 1].color == 1 && board[curRank][curFile + 1].pawnDoubleJump == true) {
-                            validMoves.push_back(std::to_string(piece.color) + 'p' + std::to_string(curRank) + std::to_string(curFile) + std::to_string(curRank - 1) + std::to_string(curFile + 1) + '1');
+                        if (curRank == 3 && board[curRank][curFile + 1].name == 'p' && board[curRank][curFile + 1].color == 1 && board[curRank][curFile + 1].pawnDoubleJump == true) {
+                            validMoves.push_back(Move(board[curRank][curFile], curRank - 1, curFile + 1, 1));
                         }
                     }
                 }
@@ -203,23 +206,38 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
                 }
             }
 
-            if (piece.name == "n") {
+            if (piece.name == 'n') {
+                std::vector<std::pair<int, int>> targetSquares;
+
+                auto addInBoard = [&](int rank, int file) {
+                    if (rank > -1 && rank < 8 && file > -1 && file < 8) {
+                        targetSquares.emplace_back(rank, file);
+                    }
+                };
+
+                addInBoard(curRank + 1, curFile + 2);
+                addInBoard(curRank + 1, curFile - 2);
+                addInBoard(curRank - 1, curFile + 2);
+                addInBoard(curRank - 1, curFile - 2);
+                addInBoard(curRank + 2, curFile + 1);
+                addInBoard(curRank + 2, curFile - 1);
+                addInBoard(curRank - 2, curFile + 1);
+                addInBoard(curRank - 2, curFile - 1);
+            }
+
+            if (piece.name == 'b') {
 
             }
 
-            if (piece.name == "b") {
+            if (piece.name == 'r') {
 
             }
 
-            if (piece.name == "r") {
+            if (piece.name == 'q') {
 
             }
 
-            if (piece.name == "q") {
-
-            }
-
-            if (piece.name == "k") {
+            if (piece.name == 'k') {
 
             }
         }
@@ -228,14 +246,14 @@ std::vector<std::string> Board::boardMoves(std::vector<std::string>* activePiece
     return validMoves;
 }
 
-// still need to handle pawn promotion
+// still need to handle pawn promotion, checks, castling
 
 void Board::move(Piece piece, int toRank, int toFile) {
     std::string moveString = std::to_string(piece.color) + piece.name + std::to_string(piece.rank) + std::to_string(piece.file) + std::to_string(toRank) + std::to_string(toFile);
     if (playerTurn == piece.color) {
         if (std::find(validMoves.begin(), validMoves.end(), moveString + '0') != validMoves.end() || std::find(validMoves.begin(), validMoves.end(), moveString + '1') != validMoves.end()) {
             board[piece.rank][piece.file].color = -1;
-            board[piece.rank][piece.file].name = "e";
+            board[piece.rank][piece.file].name = 'e';
             board[piece.rank][piece.file].hasMoved = false;
             board[piece.rank][piece.file].pawnDoubleJump = false;
 

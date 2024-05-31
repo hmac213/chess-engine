@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "piece.h"
+#include "move.h"
 
 class Board {
     public:
@@ -15,7 +16,7 @@ class Board {
 
         int colorTurn();
 
-        std::vector<std::string> boardMoves(std::vector<std::string>* activePieces, int color); // can return null pointer to detect checkmate or stalemate
+        std::vector<Move> boardMoves(std::vector<std::string>* activePieces, int color); // can return null pointer to detect checkmate or stalemate
 
         void move(Piece piece, int toRank, int toFile); // update active pieces after the move is done
 
@@ -23,7 +24,7 @@ class Board {
 
     private:
         Piece board[8][8];
-        std::vector<std::string> validMoves;
+        std::vector<Move> validMoves;
         std::vector<std::string> activePieces;
         int playerTurn;
 };

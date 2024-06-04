@@ -10,7 +10,7 @@
 
 class Board {
     public:
-        Board();
+        Board(bool visualBoard);
 
         ~Board();
 
@@ -21,6 +21,10 @@ class Board {
         void move(Piece piece, int toRank, int toFile); // update active pieces after the move is done
 
         void updateBoard();
+
+        // functions for a visual board
+
+        void runVisualGame();
 
     private:
         Piece board[8][8];

@@ -3,7 +3,7 @@
 
 struct Piece {
     int color; // the color is either 0 = white or 1 = black or -1 neither
-    char name; // "XXX" where each X is 0 or 1 represents the pieces (6 types). 000 is an empty square
+    char name;
 
     int file; // file of piece
     int rank; // rank of piece

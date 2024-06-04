@@ -1,8 +1,10 @@
 #include <algorithm>
+#include <SDL.h>
+#include <SDL_image.h>  
 
 #include "board.h"
 
-Board::Board() {
+Board::Board(bool visualBoard) {
     // initialize all files and ranks
 
     for (int i = 0; i < 8; ++i) {
@@ -67,6 +69,10 @@ Board::Board() {
     // always starts with white's turn
 
     playerTurn = 0;
+
+    if (visualBoard == true) {
+        runVisualGame();
+    }
 }
 
 std::vector<Move> Board::boardMoves(std::vector<std::string>* activePieces, int color) {
@@ -203,38 +209,131 @@ std::vector<Move> Board::boardMoves(std::vector<std::string>* activePieces, int 
             if (piece.name == 'n') {
                 std::vector<std::pair<int, int>> targetSquares;
 
-                auto addInBoard = [&](int rank, int file) {
+                auto addTargetSquare = [&](int rank, int file) {
                     if (rank > -1 && rank < 8 && file > -1 && file < 8) {
                         targetSquares.emplace_back(rank, file);
                     }
                 };
 
-                addInBoard(curRank + 1, curFile + 2);
-                addInBoard(curRank + 1, curFile - 2);
-                addInBoard(curRank - 1, curFile + 2);
-                addInBoard(curRank - 1, curFile - 2);
-                addInBoard(curRank + 2, curFile + 1);
-                addInBoard(curRank + 2, curFile - 1);
-                addInBoard(curRank - 2, curFile + 1);
-                addInBoard(curRank - 2, curFile - 1);
+                addTargetSquare(curRank + 1, curFile + 2);
+                addTargetSquare(curRank + 1, curFile - 2);
+                addTargetSquare(curRank - 1, curFile + 2);
+                addTargetSquare(curRank - 1, curFile - 2);
+                addTargetSquare(curRank + 2, curFile + 1);
+                addTargetSquare(curRank + 2, curFile - 1);
+                addTargetSquare(curRank - 2, curFile + 1);
+                addTargetSquare(curRank - 2, curFile - 1);
+
+                for (const auto& square : targetSquares) {
+                    int toRank = square.first;
+                    int toFile = square.second;
+
+                    if (board[toRank][toFile].color == -1) {
+                        validMoves.push_back(Move(board[curRank][curFile], toRank, toFile, 0));
+                    } else if (board[toRank][toFile].color != board[curRank][curFile].color) {
+                        validMoves.push_back(Move(board[curRank][curFile], toRank, toFile, 1));
+                    }
+                }
             }
 
             if (piece.name == 'b') {
+                std::vector<std::pair<int, int>> moveDirections = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
 
+                auto searchTargetSquare = [&](std::pair<int, int> direction, int checkRank, int checkFile) {
+                    if (board[checkRank + direction.first][checkFile + direction.second].color == -1) {
+                        validMoves.push_back(Move(board[curRank][curFile], checkRank + direction.first, checkFile + direction.second, 0));
+                    } else if (board[checkRank + direction.first][checkFile + direction.second].color != board[curRank][curFile].color) {
+                        validMoves.push_back(Move(board[curRank][curFile], checkRank + direction.first, checkFile + direction.second, 1));
+                    }
+                };
+
+                for (const auto& direction : moveDirections) {
+                    int checkRank = curRank;
+                    int checkFile = curFile;
+
+                    bool keepChecking = true;
+
+                    while (keepChecking) {
+                        if (checkRank > 7 || checkRank < 0 || checkFile > 7 || checkFile < 0 || board[checkRank][checkFile].color == board[curRank][curFile].color) {
+                            keepChecking = false;
+                            break;
+                        }
+
+                        searchTargetSquare(direction, checkRank, checkFile);
+                        checkRank += direction.first;
+                        checkFile += direction.second;
+                    }
+                }
             }
 
             if (piece.name == 'r') {
+                std::vector<std::pair<int, int>> moveDirections = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
+                auto searchTargetSquare = [&](std::pair<int, int> direction, int checkRank, int checkFile) {
+                    if (board[checkRank + direction.first][checkFile + direction.second].color == -1) {
+                        validMoves.push_back(Move(board[curRank][curFile], checkRank + direction.first, checkFile + direction.second, 0));
+                    } else if (board[checkRank + direction.first][checkFile + direction.second].color != board[curRank][curFile].color) {
+                        validMoves.push_back(Move(board[curRank][curFile], checkRank + direction.first, checkFile + direction.second, 1));
+                    }
+                };
+
+                for (const auto& direction : moveDirections) {
+                    int checkRank = curRank;
+                    int checkFile = curFile;
+
+                    bool keepChecking = true;
+
+                    while (keepChecking) {
+                        if (checkRank > 7 || checkRank < 0 || checkFile > 7 || checkFile < 0 || board[checkRank][checkFile].color == board[curRank][curFile].color) {
+                            keepChecking = false;
+                            break;
+                        }
+
+                        searchTargetSquare(direction, checkRank, checkFile);
+                        checkRank += direction.first;
+                        checkFile += direction.second;
+                    }
+                }
             }
 
             if (piece.name == 'q') {
+                std::vector<std::pair<int, int>> moveDirections = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
+                auto searchTargetSquare = [&](std::pair<int, int> direction, int checkRank, int checkFile) {
+                    if (board[checkRank + direction.first][checkFile + direction.second].color == -1) {
+                        validMoves.push_back(Move(board[curRank][curFile], checkRank + direction.first, checkFile + direction.second, 0));
+                    } else if (board[checkRank + direction.first][checkFile + direction.second].color != board[curRank][curFile].color) {
+                        validMoves.push_back(Move(board[curRank][curFile], checkRank + direction.first, checkFile + direction.second, 1));
+                    }
+                };
+
+                for (const auto& direction : moveDirections) {
+                    int checkRank = curRank;
+                    int checkFile = curFile;
+
+                    bool keepChecking = true;
+
+                    while (keepChecking) {
+                        if (checkRank > 7 || checkRank < 0 || checkFile > 7 || checkFile < 0 || board[checkRank][checkFile].color == board[curRank][curFile].color) {
+                            keepChecking = false;
+                            break;
+                        }
+
+                        searchTargetSquare(direction, checkRank, checkFile);
+                        checkRank += direction.first;
+                        checkFile += direction.second;
+                    }
+                }
             }
 
             if (piece.name == 'k') {
 
             }
         }
+    }
+
+    for (const auto& move : validMoves) {
+        // create a loop to check for creating checks
     }
 
     return validMoves;
@@ -270,3 +369,70 @@ void Board::move(Piece piece, int toRank, int toFile) {
 // void Board::updateBoard() {
 
 // }
+
+// running a graphical game
+
+void Board::runVisualGame() {
+    int imgFlags = IMG_INIT_PNG;
+
+    const int SCREEN_WIDTH = 1100;
+    const int SCREEN_HEIGHT = 800;
+    const int SQUARE_SIZE = 100;
+    const int PIECE_SIZE = 60;
+
+    SDL_Window* window;
+    SDL_Renderer* render;
+    SDL_Surface* surface;
+    SDL_Texture* pieceTextures[8][8];
+    
+    std::vector<std::string> imgPaths = { "0p", "0n", "0b", "0r", "0q", "0k", "1p", "1n", "1b", "1r", "1q", "1k" };
+
+    if (SDL_Init(SDL_INIT_EVERYTHING != 0)) {
+        std::cout << "There has been an error: " << SDL_GetError() << std::endl;
+        return;
+    } else {
+        window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        surface = SDL_GetWindowSurface(window);
+
+        for (int i = 0; i < 8; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                Uint32 squareColor;
+                int squareX;
+                int squareY;
+                if ((i + j) % 2 == 0) {
+                    squareColor = SDL_MapRGB(surface->format, 240, 217, 181); // light
+                } else {
+                    squareColor = SDL_MapRGB(surface->format, 181, 136, 99); // dark
+                }
+
+                squareX = 150 + 100 * j;
+                squareY = SCREEN_HEIGHT - 100 * (i + 1);
+
+                SDL_Rect squareRect = { squareX, squareY, 100, 100};
+
+                SDL_FillRect(surface, &squareRect, squareColor);
+            }
+        }
+
+        for (int i = 0; i < 8; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                if (board[i][j].color != -1) {
+                    SDL_Surface* loadedSurface = IMG_Load(("./pieceImages/" + std::to_string(board[i][j].color) + board[i][j].name + ".png").c_str());
+                    // pieceTextures[i][j] = 
+                    // pieceTextures[i][j] = "./pieceImages/" + std::to_string(board[i][j].color) + board[i][j].name + ".png";
+                } else {
+                    pieceTextures[i][j] = nullptr;
+                }
+            }
+        }
+
+        SDL_UpdateWindowSurface(window);
+    }
+
+    SDL_DestroyWindow(window);
+
+    SDL_Quit();
+
+    return;
+}

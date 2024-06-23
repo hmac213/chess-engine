@@ -333,7 +333,7 @@ std::vector<Move> Board::boardMoves(std::vector<std::string>* activePieces, int 
     }
 
     for (const auto& move : validMoves) {
-        // create a loop to check for creating checks
+        
     }
 
     return validMoves;
